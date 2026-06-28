@@ -1,0 +1,116 @@
+{
+  "name": "Temperature Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://wttr.in/Ambala?format=j1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "5f05e55f-17b5-4a4a-81f5-46f1515dc082",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.data;\nconst allData = JSON.parse(raw);\n\nconst data = allData.current_condition?.[0];\n\nif (!data) {\n  return [\n    {\n      json: {\n        message: \"❌ Weather data not found.\"\n      }\n    }\n  ];\n}\n\nconst temp = Number(data.temp_C);\nconst feelsLike = Number(data.FeelsLikeC);\nconst humidity = data.humidity;\nconst wind = data.windspeedKmph;\nconst desc = data.weatherDesc?.[0]?.value || \"N/A\";\n\nlet advice = \"\";\nif (temp >= 35) {\n  advice = \"🔥 Bahut garmi hai. Paani sath rakho, dhoop se bcho!\";\n} else if (temp <= 15) {\n  advice = \"❄️ Thand hai. Garam kapde pehno.\";\n} else {\n  advice = \"🌤 Mausam theek hai. Enjoy karo!\";\n}\n\nreturn [\n  {\n    json: {\n      message: `🌤 Ambala Weather Update\\n\\n🌡 Temperature: ${temp}°C (Feels like ${feelsLike}°C)\\n💧 Humidity: ${humidity}%\\n💨 Wind: ${wind} km/h\\n☁️ Condition: ${desc}\\n\\n${advice}`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "f3e3f252-756e-4058-8a51-2aff873b78b2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "8981852892",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "56091fbf-87b9-44da-91f6-f468746a8254",
+      "name": "Send a text message",
+      "webhookId": "adfae867-c268-4c1f-9781-3cdbe21c705c",
+      "credentials": {
+        "telegramApi": {
+          "id": "DIbmG347K0uqIxJi",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        32,
+        0
+      ],
+      "id": "696eb2b3-7981-450d-99ba-748081da9aed",
+      "name": "When clicking ‘Execute workflow’",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9df156a3-00f0-4491-a138-31b54e3c79e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ad16c64e59d2de13ba40537d5476354eb00da74fb1eece3b2c23c074c13e8860"
+  },
+  "nodeGroups": [],
+  "id": "r3QUeCwu7141hCyb",
+  "tags": []
+}
